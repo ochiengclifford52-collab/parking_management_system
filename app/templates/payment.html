@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Payment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-primary text-white"><strong>Payment</strong></div>
+      <div class="card-body">
+
+        {% if not fee %}
+          <div class="alert alert-danger">Unable to compute fee. Session may be invalid.</div>
+        {% else %}
+          <table class="table">
+            <tr><th>Ticket</th><td>{{ session.ticket_number }}</td></tr>
+            <tr><th>Vehicle</th><td>{{ session.vehicle.number_plate }}</td></tr>
+            <tr><th>Bay</th><td>{{ session.bay.bay_number }}</td></tr>
+            <tr><th>Duration</th><td>{{ fee.duration.human }}</td></tr>
+            <tr><th>Amount Due</th><td class="h4 text-danger">KES {{ "%.2f"|format(fee.amount) }}</td></tr>
+          </table>
+
+          {% if payment_mode == 'demo' %}
+            <div class="alert alert-warning small">
+              <strong>DEMO PAYMENT MODE</strong> — no real M-Pesa transaction will be created.
+              Use the buttons on the status page to simulate success or failure.
+            </div>
+          {% else %}
+            <div class="alert alert-info small">
+              <strong>M-Pesa SANDBOX</strong> — a real STK Push will be sent to the phone number you enter.
+            </div>
+          {% endif %}
+
+          <hr>
+          <h5>Choose a payment method</h5>
+
+          <form method="post" class="mb-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="method" value="MPESA">
+            <div class="input-group">
+              <span class="input-group-text bg-success text-white">M-Pesa</span>
+              <input name="phone_number" class="form-control" placeholder="2547XXXXXXXX" required>
+              <button type="submit" class="btn btn-success">Pay with M-Pesa</button>
+            </div>
+          </form>
+
+          <form method="post" class="mb-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="method" value="CARD">
+            <div class="input-group">
+              <span class="input-group-text bg-primary text-white">Card</span>
+              <input name="card_last4" class="form-control" placeholder="Last 4 digits (e.g. 4242)">
+              <button type="submit" class="btn btn-primary">Pay with Card (Simulated)</button>
+            </div>
+          </form>
+
+          <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="method" value="CASH">
+            <div class="input-group">
+              <span class="input-group-text bg-warning">Cash</span>
+              <input name="cash_received" type="number" step="0.01" min="0" class="form-control"
+                     placeholder="Cash received (KES)" required>
+              <button type="submit" class="btn btn-warning">Pay with Cash</button>
+            </div>
+          </form>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

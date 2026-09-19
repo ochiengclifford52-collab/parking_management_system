@@ -1,0 +1,41 @@
+/* Modern Parking Management System — styling */
+
+body { background: #f4f6fa; }
+
+.navbar-brand { font-weight: 700; letter-spacing: 0.5px; }
+
+/* Grid of parking bays */
+.bay-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+.bay {
+  padding: 12px 4px;
+  text-align: center;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s;
+}
+
+.bay:hover { transform: scale(1.05); }
+
+.bay-available      { background: #198754; }
+.bay-occupied       { background: #dc3545; }
+.bay-out_of_service { background: #6c757d; }
+
+.card { border: 1px solid #e6e9f0; border-radius: 10px; }
+.card-header { background: #fff; border-bottom: 1px solid #eef1f6; }
+
+table.table th { font-weight: 600; }
+code { color: #0d6efd; }
+
+/* Print styles for receipt */
+@media print {
+  .navbar, footer, .btn, .alert { display: none !important; }
+  .card { border: none !important; box-shadow: none !important; }
+  body { background: #fff; }
+}

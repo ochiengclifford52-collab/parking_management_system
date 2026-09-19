@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-speedometer2"></i> Dashboard</h3>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card text-bg-primary"><div class="card-body">
+      <div class="small text-uppercase">Total Bays</div>
+      <div class="h3 mb-0">{{ stats.total_bays }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-bg-success"><div class="card-body">
+      <div class="small text-uppercase">Available</div>
+      <div class="h3 mb-0" id="stat-available">{{ stats.available }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-bg-danger"><div class="card-body">
+      <div class="small text-uppercase">Occupied</div>
+      <div class="h3 mb-0" id="stat-occupied">{{ stats.occupied }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-bg-secondary"><div class="card-body">
+      <div class="small text-uppercase">Out of Service</div>
+      <div class="h3 mb-0">{{ stats.out_of_service }}</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card"><div class="card-body">
+      <div class="small text-muted">Today's Revenue</div>
+      <div class="h3 mb-0">KES {{ "%.2f"|format(stats.today_revenue) }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card"><div class="card-body">
+      <div class="small text-muted">Today's Entries</div>
+      <div class="h3 mb-0">{{ stats.today_entries }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card"><div class="card-body">
+      <div class="small text-muted">Today's Exits</div>
+      <div class="h3 mb-0">{{ stats.today_exits }}</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header"><strong>Quick Actions</strong></div>
+  <div class="card-body">
+    <a href="{{ url_for('parking.entry') }}" class="btn btn-success me-2 mb-2">
+      <i class="bi bi-box-arrow-in-right"></i> Register Vehicle
+    </a>
+    <a href="{{ url_for('parking.exit_view') }}" class="btn btn-warning me-2 mb-2">
+      <i class="bi bi-box-arrow-right"></i> Process Exit
+    </a>
+    <a href="{{ url_for('payments.list_payments') }}" class="btn btn-info me-2 mb-2">
+      <i class="bi bi-credit-card"></i> View Payments
+    </a>
+    {% if current_user.is_admin %}
+      <a href="{{ url_for('tariffs.index') }}" class="btn btn-secondary me-2 mb-2">
+        <i class="bi bi-cash-coin"></i> Manage Rates
+      </a>
+    {% endif %}
+    {% if current_user.has_role('admin', 'auditor') %}
+      <a href="{{ url_for('reports.index') }}" class="btn btn-dark mb-2">
+        <i class="bi bi-graph-up"></i> Reports
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <strong>Parking Map</strong>
+        <small class="text-muted">(auto-refresh every 5s)</small>
+      </div>
+      <div class="card-body">
+        <div id="parking-map" class="bay-grid">
+          {% for b in bays %}
+            <div class="bay bay-{{ b.status|lower }}" data-bay="{{ b.bay_number }}">{{ b.bay_number }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 mb-4">
+    <div class="card">
+      <div class="card-header"><strong>7-day Revenue</strong></div>
+      <div class="card-body"><canvas id="rev" height="180"></canvas></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  new Chart(document.getElementById('rev'), {
+    type: 'bar',
+    data: {
+      labels: {{ chart_labels|tojson }},
+      datasets: [{ label: 'KES', data: {{ chart_values|tojson }}, backgroundColor: '#0d6efd' }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+
+  async function refreshDashboardMap() {
+    try {
+      const resp = await fetch("{{ url_for('parking.api_availability') }}");
+      const data = await resp.json();
+      document.getElementById('stat-available').textContent = data.counts.available;
+      document.getElementById('stat-occupied').textContent = data.counts.occupied;
+      for (const bay of data.bays) {
+        const el = document.querySelector('[data-bay="' + bay.bay_number + '"]');
+        if (el) {
+          el.classList.remove('bay-available', 'bay-occupied', 'bay-out_of_service');
+          el.classList.add('bay-' + bay.status.toLowerCase());
+        }
+      }
+    } catch (e) { /* ignore network blips */ }
+  }
+  setInterval(refreshDashboardMap, 5000);
+</script>
+{% endblock %}

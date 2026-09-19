@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Log{% endblock %}
+
+{% block content %}
+<h3><i class="bi bi-shield-lock"></i> Audit Log</h3>
+<p class="text-muted">Append-only. Most recent 500 events.</p>
+
+<div class="table-responsive">
+  <table class="table table-sm table-striped">
+    <thead class="table-light">
+      <tr>
+        <th>Time (UTC)</th><th>User</th><th>Action</th>
+        <th>Entity</th><th>Description</th><th>IP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in logs %}
+        <tr>
+          <td>{{ l.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+          <td>{{ l.user.username if l.user else '-' }}</td>
+          <td><span class="badge bg-secondary">{{ l.action }}</span></td>
+          <td>{{ l.entity_type or '' }}{% if l.entity_id %}#{{ l.entity_id }}{% endif %}</td>
+          <td class="small">{{ l.description or '' }}</td>
+          <td class="small">{{ l.ip_address or '' }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

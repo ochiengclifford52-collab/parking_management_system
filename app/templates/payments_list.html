@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Payments{% endblock %}
+
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-credit-card"></i> Payments</h3>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-3">
+    <input name="ref" class="form-control" placeholder="Search reference / ticket"
+           value="{{ request.args.get('ref', '') }}">
+  </div>
+  <div class="col-md-2">
+    <select name="status" class="form-select">
+      <option value="">All statuses</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select name="method" class="form-select">
+      <option value="">All methods</option>
+      {% for m in methods %}
+        <option value="{{ m }}" {% if request.args.get('method') == m %}selected{% endif %}>{{ m }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button type="submit" class="btn btn-primary w-100">Filter</button>
+  </div>
+</form>
+
+<div class="table-responsive">
+<table class="table table-sm table-hover">
+  <thead class="table-light">
+    <tr>
+      <th>Date</th><th>Reference</th><th>Ticket</th><th>Plate</th>
+      <th>Method</th><th class="text-end">Amount</th><th>Status</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in payments %}
+      <tr>
+        <td>{{ p.created_at.strftime('%d/%m %H:%M') }}</td>
+        <td><code>{{ p.transaction_reference }}</code></td>
+        <td>{{ p.session.ticket_number if p.session else '-' }}</td>
+        <td>{{ p.session.vehicle.number_plate if p.session and p.session.vehicle else '-' }}</td>
+        <td>{{ p.payment_method }}</td>
+        <td class="text-end">KES {{ "%.2f"|format(p.amount) }}</td>
+        <td>
+          {% if p.status == 'CONFIRMED' %}
+            <span class="badge bg-success">CONFIRMED</span>
+          {% elif p.status == 'PENDING' %}
+            <span class="badge bg-warning text-dark">PENDING</span>
+          {% elif p.status == 'FAILED' %}
+            <span class="badge bg-danger">FAILED</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ p.status }}</span>
+          {% endif %}
+        </td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('payments.status', payment_id=p.id) }}">Open</a>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="8" class="text-center text-muted">No payments found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

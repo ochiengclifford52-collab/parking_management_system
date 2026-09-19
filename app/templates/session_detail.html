@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket {{ session.ticket_number }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <strong>Parking Ticket</strong>
+        <span class="float-end">{{ session.ticket_number }}</span>
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <tr><th>Vehicle</th><td>{{ session.vehicle.number_plate }}</td></tr>
+          <tr><th>Bay</th><td>{{ session.bay.bay_number }}</td></tr>
+          <tr><th>Entry Time</th><td>{{ session.entry_time.strftime('%d/%m/%Y %H:%M:%S') }}</td></tr>
+          <tr><th>Status</th><td><span class="badge bg-info">{{ session.status }}</span></td></tr>
+        </table>
+        <a href="{{ url_for('parking.exit_view') }}" class="btn btn-warning">
+          <i class="bi bi-box-arrow-right"></i> Process Exit
+        </a>
+        <a href="{{ url_for('parking.index') }}" class="btn btn-outline-secondary">Back to Map</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

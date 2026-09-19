@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Status{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">
+        <strong>Payment Status</strong>
+        <span class="float-end">
+          {% if payment.status == 'CONFIRMED' %}
+            <span class="badge bg-success">CONFIRMED</span>
+          {% elif payment.status == 'PENDING' %}
+            <span class="badge bg-warning text-dark">PENDING</span>
+          {% elif payment.status == 'FAILED' %}
+            <span class="badge bg-danger">FAILED</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ payment.status }}</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <tr><th>Reference</th><td>{{ payment.transaction_reference }}</td></tr>
+          <tr><th>Ticket</th><td>{{ session.ticket_number }}</td></tr>
+          <tr><th>Vehicle</th><td>{{ session.vehicle.number_plate }}</td></tr>
+          <tr><th>Method</th><td>{{ payment.payment_method }}</td></tr>
+          <tr><th>Amount</th><td>KES {{ "%.2f"|format(payment.amount) }}</td></tr>
+          {% if payment.external_reference %}
+            <tr><th>External Ref</th><td>{{ payment.external_reference }}</td></tr>
+          {% endif %}
+          {% if payment.phone_number %}
+            <tr><th>Phone</th><td>{{ payment.phone_number }}</td></tr>
+          {% endif %}
+          {% if payment.change_given is not none %}
+            <tr><th>Cash received</th><td>KES {{ "%.2f"|format(payment.cash_received or 0) }}</td></tr>
+            <tr><th>Change</th><td>KES {{ "%.2f"|format(payment.change_given or 0) }}</td></tr>
+          {% endif %}
+        </table>
+
+        {% if payment.status == 'PENDING' and payment.payment_method == 'MPESA' %}
+          {% if payment.phone_number and not payment.checkout_request_id %}
+            <div class="alert alert-warning">
+              <strong>DEMO MODE:</strong> choose an outcome to simulate the customer's response.
+            </div>
+            <form method="post" action="{{ url_for('payments.demo_confirm', payment_id=payment.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check2-circle"></i> Simulate Successful Payment
+              </button>
+            </form>
+            <form method="post" action="{{ url_for('payments.demo_fail', payment_id=payment.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger">
+                <i class="bi bi-x-circle"></i> Simulate Failed Payment
+              </button>
+            </form>
+          {% else %}
+            <div class="alert alert-info">Waiting for Safaricom callback... refresh in a moment.</div>
+          {% endif %}
+        {% endif %}
+
+        {% if payment.status == 'CONFIRMED' %}
+          <form method="post" action="{{ url_for('payments.barrier_open', session_id=session.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-door-open"></i> Open Barrier
+            </button>
+          </form>
+          <form method="post" action="{{ url_for('payments.finalise', session_id=session.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-receipt"></i> Finalise Exit &amp; Show Receipt
+            </button>
+          </form>
+        {% endif %}
+
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

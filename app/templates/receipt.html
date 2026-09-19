@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Receipt{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-body font-monospace">
+        <div class="text-center">
+          <h5>MODERN PARKING MANAGEMENT SYSTEM</h5>
+          <div class="small text-muted">Official Parking Receipt</div>
+          <hr>
+        </div>
+        <table class="table table-sm">
+          <tr><th>Receipt No</th><td>RCPT-{{ "%06d"|format(payment.id) }}</td></tr>
+          <tr><th>Ticket</th><td>{{ session.ticket_number }}</td></tr>
+          <tr><th>Vehicle</th><td>{{ session.vehicle.number_plate }}</td></tr>
+          <tr><th>Bay</th><td>{{ session.bay.bay_number if session.bay else '-' }}</td></tr>
+          <tr><th>Entry</th><td>{{ session.entry_time.strftime('%d/%m/%Y %H:%M') }}</td></tr>
+          <tr><th>Exit</th>
+            <td>{% if session.exit_time %}{{ session.exit_time.strftime('%d/%m/%Y %H:%M') }}{% else %}In progress{% endif %}</td>
+          </tr>
+          <tr><th>Duration</th>
+            <td>
+              {% if session.duration_minutes is not none %}
+                {{ session.duration_minutes // 60 }}h {{ session.duration_minutes % 60 }}m
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          <tr><th>Net</th><td>KES {{ "%.2f"|format(payment.net_amount or 0) }}</td></tr>
+          <tr><th>VAT</th><td>KES {{ "%.2f"|format(payment.vat_amount or 0) }}</td></tr>
+          <tr class="table-active">
+            <th>Total Paid</th>
+            <td class="fw-bold">KES {{ "%.2f"|format(payment.amount) }}</td>
+          </tr>
+          <tr><th>Method</th><td>{{ payment.payment_method }}</td></tr>
+          <tr><th>Reference</th><td>{{ payment.external_reference or payment.transaction_reference }}</td></tr>
+          <tr><th>Status</th><td class="text-success fw-bold">{{ payment.status }}</td></tr>
+        </table>
+        <div class="text-center small text-muted">
+          Thank you. Karibu tena.
+        </div>
+      </div>
+    </div>
+    <button onclick="window.print()" class="btn btn-outline-secondary mt-3">
+      <i class="bi bi-printer"></i> Print
+    </button>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Admin{% endblock %}
+
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-gear"></i> Administration</h3>
+
+<div class="row">
+  <div class="col-lg-6 mb-3">
+    <div class="card">
+      <div class="card-header"><strong>Parking Bays</strong></div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Bay</th><th>Zone</th><th>Status</th><th>Change</th></tr>
+          </thead>
+          <tbody>
+            {% for b in bays %}
+              <tr>
+                <td>{{ b.bay_number }}</td>
+                <td>{{ b.zone }}</td>
+                <td>
+                  {% if b.status == 'AVAILABLE' %}<span class="badge bg-success">{{ b.status }}</span>
+                  {% elif b.status == 'OCCUPIED' %}<span class="badge bg-danger">{{ b.status }}</span>
+                  {% else %}<span class="badge bg-secondary">{{ b.status }}</span>{% endif %}
+                </td>
+                <td>
+                  <form method="post" action="{{ url_for('admin.set_bay_status', bay_id=b.id) }}"
+                        class="d-flex gap-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="status" class="form-select form-select-sm">
+                      <option value="AVAILABLE">AVAILABLE</option>
+                      <option value="OCCUPIED">OCCUPIED</option>
+                      <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">Set</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer">
+        <form method="post" action="{{ url_for('admin.add_bay') }}" class="row g-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="col-5"><input name="bay_number" class="form-control" placeholder="Bay (C01)" required></div>
+          <div class="col-4"><input name="zone" class="form-control" placeholder="Zone (C)"></div>
+          <div class="col-3"><button type="submit" class="btn btn-success w-100">Add</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6 mb-3">
+    <div class="card mb-3">
+      <div class="card-header"><strong>Users</strong></div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Username</th><th>Full Name</th><th>Role</th><th>Active</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+              <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.full_name }}</td>
+                <td>{{ u.role.name }}</td>
+                <td>
+                  {% if u.is_active %}<span class="badge bg-success">Yes</span>
+                  {% else %}<span class="badge bg-secondary">No</span>{% endif %}
+                </td>
+                <td>
+                  <form method="post" action="{{ url_for('admin.toggle_user', user_id=u.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Toggle</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer">
+        <form method="post" action="{{ url_for('admin.add_user') }}" class="row g-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="col-4"><input name="username" class="form-control" placeholder="username" required></div>
+          <div class="col-4"><input name="full_name" class="form-control" placeholder="Full name" required></div>
+          <div class="col-4"><input name="password" type="password" class="form-control" placeholder="Password" required></div>
+          <div class="col-8">
+            <select name="role" class="form-select">
+              <option value="attendant">Attendant</option>
+              <option value="admin">Administrator</option>
+              <option value="auditor">Auditor</option>
+            </select>
+          </div>
+          <div class="col-4"><button type="submit" class="btn btn-success w-100">Create user</button></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><strong>System settings</strong></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin.save_settings') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-2">
+            <label class="form-label">VAT rate (%)</label>
+            <input name="vat_rate" type="number" step="0.01" class="form-control"
+                   value="{{ settings|selectattr('setting_key','equalto','vat_rate')|map(attribute='setting_value')|first or 16 }}">
+            <small class="text-muted">Set to 0 to disable VAT.</small>
+          </div>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

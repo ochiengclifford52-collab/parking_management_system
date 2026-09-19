@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Vehicle Exit{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-warning">
+        <strong>Step 1 — Find Session</strong>
+      </div>
+      <div class="card-body">
+        <form method="post" class="row g-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="col-md-8">
+            <input name="plate_or_ticket" class="form-control form-control-lg"
+                   placeholder="KDA 123A or PK-..." required autofocus>
+          </div>
+          <div class="col-md-4">
+            <button type="submit" class="btn btn-warning w-100">
+              <i class="bi bi-search"></i> Calculate Fee
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {% if session and fee %}
+    <div class="card mt-3">
+      <div class="card-header bg-info text-white">
+        <strong>Invoice Preview</strong>
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <tr><th>Ticket</th><td>{{ session.ticket_number }}</td></tr>
+          <tr><th>Vehicle</th><td>{{ session.vehicle.number_plate }}</td></tr>
+          <tr><th>Bay</th><td>{{ session.bay.bay_number }}</td></tr>
+          <tr><th>Entry</th><td>{{ session.entry_time.strftime('%d/%m/%Y %H:%M:%S') }}</td></tr>
+          <tr><th>Exit</th><td>{{ exit_time.strftime('%d/%m/%Y %H:%M:%S') }}</td></tr>
+          <tr><th>Duration</th><td>{{ fee.duration.human }} ({{ fee.duration.minutes }} min)</td></tr>
+          <tr><th>Applicable Tariff</th><td>{{ fee.applicable_tariff }}</td></tr>
+          <tr><th>Amount Due</th><td class="h4 text-danger">KES {{ "%.2f"|format(fee.amount) }}</td></tr>
+        </table>
+        <a href="{{ url_for('payments.checkout', session_id=session.id) }}" class="btn btn-primary btn-lg">
+          <i class="bi bi-credit-card"></i> Proceed to Payment
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

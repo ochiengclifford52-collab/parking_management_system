@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Parking Availability{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h2><i class="bi bi-p-square text-primary"></i> Modern Parking — Live Availability</h2>
+  <p class="text-muted">Check before you drive in</p>
+</div>
+
+<div class="row justify-content-center g-3 mb-4">
+  <div class="col-4 col-md-3">
+    <div class="card text-bg-primary text-center"><div class="card-body">
+      <div class="small text-uppercase">Total</div>
+      <div class="h2" id="c-total">{{ counts.total }}</div>
+    </div></div>
+  </div>
+  <div class="col-4 col-md-3">
+    <div class="card text-bg-success text-center"><div class="card-body">
+      <div class="small text-uppercase">Available</div>
+      <div class="h2" id="c-avail">{{ counts.available }}</div>
+    </div></div>
+  </div>
+  <div class="col-4 col-md-3">
+    <div class="card text-bg-danger text-center"><div class="card-body">
+      <div class="small text-uppercase">Occupied</div>
+      <div class="h2" id="c-occ">{{ counts.occupied }}</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div id="pmap" class="bay-grid">
+      {% for b in bays %}
+        <div class="bay bay-{{ b.status|lower }}" data-bay="{{ b.bay_number }}">{{ b.bay_number }}</div>
+      {% endfor %}
+    </div>
+    <hr>
+    <span class="badge bg-success">Available</span>
+    <span class="badge bg-danger">Occupied</span>
+    <span class="badge bg-secondary">Out of Service</span>
+  </div>
+</div>
+
+<p class="text-center text-muted small mt-3">
+  Auto-refreshes every 5 seconds ·
+  <a href="{{ url_for('auth.login') }}">Staff Login</a>
+</p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  async function refreshPublicMap() {
+    try {
+      const resp = await fetch("{{ url_for('public.api_availability') }}");
+      const data = await resp.json();
+      document.getElementById('c-total').textContent = data.counts.total;
+      document.getElementById('c-avail').textContent = data.counts.available;
+      document.getElementById('c-occ').textContent = data.counts.occupied;
+      for (const bay of data.bays) {
+        const el = document.querySelector('#pmap [data-bay="' + bay.bay_number + '"]');
+        if (el) {
+          el.classList.remove('bay-available', 'bay-occupied', 'bay-out_of_service');
+          el.classList.add('bay-' + bay.status.toLowerCase());
+        }
+      }
+    } catch (e) { /* ignore */ }
+  }
+  setInterval(refreshPublicMap, 5000);
+</script>
+{% endblock %}

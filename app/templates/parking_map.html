@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Parking Map{% endblock %}
+
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-grid-3x3"></i> Parking Map</h3>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="card text-bg-primary"><div class="card-body">
+    <div class="small">Total</div>
+    <div class="h4 mb-0">{{ counts.total }}</div>
+  </div></div></div>
+  <div class="col-md-3"><div class="card text-bg-success"><div class="card-body">
+    <div class="small">Available</div>
+    <div class="h4 mb-0" id="sa">{{ counts.available }}</div>
+  </div></div></div>
+  <div class="col-md-3"><div class="card text-bg-danger"><div class="card-body">
+    <div class="small">Occupied</div>
+    <div class="h4 mb-0" id="so">{{ counts.occupied }}</div>
+  </div></div></div>
+  <div class="col-md-3"><div class="card text-bg-secondary"><div class="card-body">
+    <div class="small">Out of Service</div>
+    <div class="h4 mb-0">{{ counts.out_of_service }}</div>
+  </div></div></div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="bay-grid" id="pmap">
+      {% for b in bays %}
+        <div class="bay bay-{{ b.status|lower }}" data-bay="{{ b.bay_number }}">{{ b.bay_number }}</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  async function refreshStaffMap() {
+    try {
+      const resp = await fetch("{{ url_for('parking.api_availability') }}");
+      const data = await resp.json();
+      document.getElementById('sa').textContent = data.counts.available;
+      document.getElementById('so').textContent = data.counts.occupied;
+      for (const bay of data.bays) {
+        const el = document.querySelector('#pmap [data-bay="' + bay.bay_number + '"]');
+        if (el) {
+          el.classList.remove('bay-available', 'bay-occupied', 'bay-out_of_service');
+          el.classList.add('bay-' + bay.status.toLowerCase());
+        }
+      }
+    } catch (e) { /* ignore */ }
+  }
+  setInterval(refreshStaffMap, 5000);
+</script>
+{% endblock %}
