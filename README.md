@@ -13,9 +13,9 @@ barrier control, and revenue reporting for a Kenyan parking facility.
 The written answers to the assignment's three sub-questions are in the
 `docs/` folder:
 
-- [Algorithms for each module](docs/task_one_algorithms.md)
-- [Data structures and their justification](docs/task_one_data_structures.md)
-- [Dynamic database design](docs/task_one_database_design.md)
+- [Algorithms for each module]
+- [Data structures and their justification]
+- [Dynamic database design]
 
 ---
 
