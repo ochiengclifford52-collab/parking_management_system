@@ -118,13 +118,13 @@ Highlights:
 | Stack (logical)   | Audit log view (newest first)  | Recent-activity debugging        | O(k)         |
 | Relational tables | All persistence                | ACID, FKs, SQL aggregation       | varies       |
 
-Full write-up: [docs/task_one_data_structures.md](docs/task_one_data_structures.md)
+Full write-up: [structures.md]
 
 ---
 
 ## Algorithms
 
-See [docs/task_one_algorithms.md](docs/task_one_algorithms.md) for
+See [docs/task_one_algorithms.md] for
 full pseudocode and complexity for each module. Brief summary:
 
 - **Bay allocation** — priority heap first, then FIFO deque.
